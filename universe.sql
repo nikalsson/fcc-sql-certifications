@@ -51,7 +51,8 @@ CREATE TABLE public.galaxy (
     name character varying(80) NOT NULL,
     galaxy_id integer NOT NULL,
     age_in_millions_of_years integer,
-    description text
+    description text,
+    coolness numeric
 );
 
 
@@ -162,6 +163,45 @@ ALTER SEQUENCE public.planet_id_seq OWNED BY public.planet.planet_id;
 
 
 --
+-- Name: satellite; Type: TABLE; Schema: public; Owner: freecodecamp
+--
+
+CREATE TABLE public.satellite (
+    name character varying(80) NOT NULL,
+    satellite_id integer NOT NULL,
+    distance_from_earth integer,
+    galaxy_id integer,
+    star_id integer,
+    planet_id integer,
+    owner character varying(80)
+);
+
+
+ALTER TABLE public.satellite OWNER TO freecodecamp;
+
+--
+-- Name: satellite_id_seq; Type: SEQUENCE; Schema: public; Owner: freecodecamp
+--
+
+CREATE SEQUENCE public.satellite_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.satellite_id_seq OWNER TO freecodecamp;
+
+--
+-- Name: satellite_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: freecodecamp
+--
+
+ALTER SEQUENCE public.satellite_id_seq OWNED BY public.satellite.satellite_id;
+
+
+--
 -- Name: star; Type: TABLE; Schema: public; Owner: freecodecamp
 --
 
@@ -169,7 +209,8 @@ CREATE TABLE public.star (
     name character varying(80) NOT NULL,
     star_id integer NOT NULL,
     distance_from_earth integer,
-    galaxy_id integer
+    galaxy_id integer,
+    coolness numeric
 );
 
 
@@ -219,6 +260,13 @@ ALTER TABLE ONLY public.planet ALTER COLUMN planet_id SET DEFAULT nextval('publi
 
 
 --
+-- Name: satellite satellite_id; Type: DEFAULT; Schema: public; Owner: freecodecamp
+--
+
+ALTER TABLE ONLY public.satellite ALTER COLUMN satellite_id SET DEFAULT nextval('public.satellite_id_seq'::regclass);
+
+
+--
 -- Name: star star_id; Type: DEFAULT; Schema: public; Owner: freecodecamp
 --
 
@@ -229,12 +277,12 @@ ALTER TABLE ONLY public.star ALTER COLUMN star_id SET DEFAULT nextval('public.st
 -- Data for Name: galaxy; Type: TABLE DATA; Schema: public; Owner: freecodecamp
 --
 
-INSERT INTO public.galaxy VALUES ('kilo', 1, 5, 'The first galaxy');
-INSERT INTO public.galaxy VALUES ('mega', 2, 10, 'The second galaxy');
-INSERT INTO public.galaxy VALUES ('giga', 3, 15, 'The third galaxy');
-INSERT INTO public.galaxy VALUES ('tera', 4, 20, 'The fourth galaxy');
-INSERT INTO public.galaxy VALUES ('peta', 6, 25, 'The fifth galaxy');
-INSERT INTO public.galaxy VALUES ('exa', 7, 25, 'The sixth galaxy');
+INSERT INTO public.galaxy VALUES ('kilo', 1, 5, 'The first galaxy', NULL);
+INSERT INTO public.galaxy VALUES ('mega', 2, 10, 'The second galaxy', NULL);
+INSERT INTO public.galaxy VALUES ('giga', 3, 15, 'The third galaxy', NULL);
+INSERT INTO public.galaxy VALUES ('tera', 4, 20, 'The fourth galaxy', NULL);
+INSERT INTO public.galaxy VALUES ('peta', 6, 25, 'The fifth galaxy', NULL);
+INSERT INTO public.galaxy VALUES ('exa', 7, 25, 'The sixth galaxy', NULL);
 
 
 --
@@ -285,16 +333,25 @@ INSERT INTO public.planet VALUES ('giga planet_three-three', 15, 50, 3, 5, false
 
 
 --
+-- Data for Name: satellite; Type: TABLE DATA; Schema: public; Owner: freecodecamp
+--
+
+INSERT INTO public.satellite VALUES ('ion cannon', 1, NULL, 1, 2, 3, 'unknown');
+INSERT INTO public.satellite VALUES ('laser cannon', 2, NULL, 1, 1, 1, 'aliens');
+INSERT INTO public.satellite VALUES ('gps satellite', 3, NULL, 1, 1, 1, 'humans');
+
+
+--
 -- Data for Name: star; Type: TABLE DATA; Schema: public; Owner: freecodecamp
 --
 
-INSERT INTO public.star VALUES ('kilo_star_one', 1, 50, 1);
-INSERT INTO public.star VALUES ('mega_star_one', 2, 50, 2);
-INSERT INTO public.star VALUES ('mega_star_two', 3, 50, 2);
-INSERT INTO public.star VALUES ('mega_star_three', 4, 50, 2);
-INSERT INTO public.star VALUES ('giga star_three', 5, 50, 3);
-INSERT INTO public.star VALUES ('giga star_two', 6, 50, 3);
-INSERT INTO public.star VALUES ('giga star_one', 7, 50, 3);
+INSERT INTO public.star VALUES ('kilo_star_one', 1, 50, 1, NULL);
+INSERT INTO public.star VALUES ('mega_star_one', 2, 50, 2, NULL);
+INSERT INTO public.star VALUES ('mega_star_two', 3, 50, 2, NULL);
+INSERT INTO public.star VALUES ('mega_star_three', 4, 50, 2, NULL);
+INSERT INTO public.star VALUES ('giga star_three', 5, 50, 3, NULL);
+INSERT INTO public.star VALUES ('giga star_two', 6, 50, 3, NULL);
+INSERT INTO public.star VALUES ('giga star_one', 7, 50, 3, NULL);
 
 
 --
@@ -316,6 +373,13 @@ SELECT pg_catalog.setval('public.moon_id_seq', 20, true);
 --
 
 SELECT pg_catalog.setval('public.planet_id_seq', 15, true);
+
+
+--
+-- Name: satellite_id_seq; Type: SEQUENCE SET; Schema: public; Owner: freecodecamp
+--
+
+SELECT pg_catalog.setval('public.satellite_id_seq', 3, true);
 
 
 --
@@ -374,6 +438,22 @@ ALTER TABLE ONLY public.planet
 
 
 --
+-- Name: satellite satellite_name; Type: CONSTRAINT; Schema: public; Owner: freecodecamp
+--
+
+ALTER TABLE ONLY public.satellite
+    ADD CONSTRAINT satellite_name UNIQUE (name);
+
+
+--
+-- Name: satellite satellite_pkey; Type: CONSTRAINT; Schema: public; Owner: freecodecamp
+--
+
+ALTER TABLE ONLY public.satellite
+    ADD CONSTRAINT satellite_pkey PRIMARY KEY (satellite_id);
+
+
+--
 -- Name: star star_name; Type: CONSTRAINT; Schema: public; Owner: freecodecamp
 --
 
@@ -427,6 +507,30 @@ ALTER TABLE ONLY public.planet
 
 ALTER TABLE ONLY public.planet
     ADD CONSTRAINT planet_star_fkey FOREIGN KEY (star_id) REFERENCES public.star(star_id);
+
+
+--
+-- Name: satellite satellite_galaxy_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: freecodecamp
+--
+
+ALTER TABLE ONLY public.satellite
+    ADD CONSTRAINT satellite_galaxy_id_fkey FOREIGN KEY (galaxy_id) REFERENCES public.galaxy(galaxy_id);
+
+
+--
+-- Name: satellite satellite_planet_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: freecodecamp
+--
+
+ALTER TABLE ONLY public.satellite
+    ADD CONSTRAINT satellite_planet_id_fkey FOREIGN KEY (planet_id) REFERENCES public.planet(planet_id);
+
+
+--
+-- Name: satellite satellite_star_fkey; Type: FK CONSTRAINT; Schema: public; Owner: freecodecamp
+--
+
+ALTER TABLE ONLY public.satellite
+    ADD CONSTRAINT satellite_star_fkey FOREIGN KEY (star_id) REFERENCES public.star(star_id);
 
 
 --
